@@ -1,0 +1,30 @@
+{
+	"manifest_version": 3,
+	"name": "Airbnb-Revival",
+	"version": "1.0",
+	"description": "Adds a red border to all webpages matching www.airbnb.*/rooms/*",
+	"icons": {
+	  "48": "icons/airbnb-icon.png"
+	},
+
+	"permissions": [
+		"activeTab",
+		"scripting",
+		"tabs",
+		"webNavigation"
+	  ],
+	"host_permissions": [
+		"*://www.airbnb.com/rooms/*",
+		"https://api.openai.com/v1/chat/completions"
+	  ],
+
+	"action": {
+	  "default_icon": "icons/airbnb-icon.png",
+	  "default_title": "Airbnb revival",
+	  "default_popup": "popup/airbnbrevival.html"
+	},
+
+	"background": {
+		"scripts": ["background.js"]
+	  }
+  }

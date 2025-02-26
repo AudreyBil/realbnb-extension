@@ -1,0 +1,125 @@
+html,
+body {
+  width: 300px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+#popup-content {
+	padding: 16px;
+  }
+
+.hidden {
+  display: none;
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.header img {
+	width: 24px;
+	height: 24px;
+	margin-right: 8px;
+}
+
+.header h1 {
+	margin: 0;
+	font-size: 16px;
+	color: #222;
+}
+
+#contentDisplay {
+	min-height: 50px;
+	padding: 12px;
+	background-color: #f8f8f8;
+	border-radius: 8px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+#contentDisplay.loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #666;
+}
+
+.result {
+	margin-top: 0;
+  }
+
+  .score {
+	font-size: 18px;
+	font-weight: bold;
+	color: #FF5A5F;  /* Airbnb brand color */
+	text-align: center;
+	margin: 12px 0;
+  }
+
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.keyword {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Positive keywords - green theme */
+.keyword.positive {
+    background-color: #E7F5E8;
+    color: #2E7D32;
+}
+
+/* Negative keywords - red theme */
+.keyword.negative {
+    background-color: #FFE8E8;
+    color: #D32F2F;
+}
+
+/* Neutral keywords - grey theme */
+.keyword.neutral {
+    background-color: #F5F5F5;
+    color: #757575;
+}
+
+  .error {
+	color: #d93025;
+	padding: 12px;
+	border-radius: 4px;
+	background-color: #fce8e6;
+	margin-top: 8px;
+	font-size: 13px;
+  }
+
+/* Animation for loading state */
+@keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0.5; }
+	100% { opacity: 1; }
+}
+
+.loading-text {
+	animation: pulse 1.5s infinite;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.loading-text::after {
+	content: "...";
+}
