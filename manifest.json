@@ -11,7 +11,8 @@
 		"activeTab",
 		"scripting",
 		"tabs",
-		"webNavigation"
+		"webNavigation",
+		"storage"
 	  ],
 	"host_permissions": [
 		"*://www.airbnb.com/rooms/*",
