@@ -59,8 +59,31 @@ async function extractListingData() {
 			.slice(0, 10) //take the 10 first images
 			.map(img => img.src) //takes each element and extract just it src attribute
 			.filter(src => src) // Remove any empty or null src values
+
+		//Get description only
+		let description = "";
+		const descriptionDiv = document.querySelector('div[data-section-id="DESCRIPTION_DEFAULT"], div[data-plugin-in-point-id="DESCRIPTION_DEFAULT"]');
+
+		if (descriptionDiv) {
+			description = descriptionDiv.textContent;
+		}
+		if (!description) {
+			console.log('No description found, using body text');
+			description = bodyText;
+		}
+
+		// Get reviews only
+		let reviews = "";
+		const reviewsDiv = document.querySelector('div[data-section-id="REVIEWS_DEFAULT"], div[data-plugin-in-point-id="REVIEWS_DEFAULT"]');
+
+		if (reviewsDiv) {
+			reviews = reviewsDiv.textContent;
+		}
+
 		return {
 			pageText: bodyText,
+			description: description,
+			reviews: reviews,
 			images: images
 		};
 	} catch (error) {
@@ -72,33 +95,53 @@ async function extractListingData() {
 function fallbackAnalysis(listingData){
 
 	const text = listingData.pageText.toLowerCase();
+	const description = listingData.description.toLowerCase();
+	const reviews = listingData.reviews.toLowerCase();
+
 	let score = 50;
 	const factors = [];
 
+
 	 // Personal Use indicators
-	const personalUseKeywords = [
+	const personalUseDescriptionKeywords = [
 		{ words: ["my home", "my place", "our place", "my family", "our family"], weight: 15, label: "+ Personal references" },
 		{ words: ["when we're away", "when i'm away", "while i'm traveling"], weight: 15, label: "+ Limited availability" },
 		{ words: ["my favorite", "i love", "we love", "personal"], weight: 5, label: "+ Personal touches" },
 		{ words: ["primary", "live here", "live in", "my neighborhood"], weight: 10, label: "+ Home descriptions" },
-		{ words: ["part of", "sharing", "share my", "share our"], weight: 10, label: "+ Sharing language" },
+		{ words: ["sharing", "share my", "share our"], weight: 10, label: "+ Sharing language" },
 		{ words: ["toys", "my books", "my collection"], weight: 8, label: "+ Personal areas" },
-	  ];
+	];
+
+	const personalUseReviewsKeywords = [
+		{ words: ["felt at home"], weight: 5, label: "+ Personal touches" },
+		{ words: ["sharing", "share their"], weight: 10, label: "+ Sharing language" },
+		{ words: ["toys", "books", "collection"], weight: 8, label: "+ Personal areas" },
+		{ words: ["wonderful hospitality"], weight: 8, label: "+ Great host hospitality" },
+	];
 
 	// Dedicated rental indicators
-	const rentalKeywords = [
+	const rentalDescriptionKeywords = [
 		{ words: ["investment", "property manager", "management"], weight: 15, label: "- Commercial terms" },
 		{ words: ["every amenity", "professionally cleaned", "professional cleaning", "hotel quality"], weight: 5, label: "- Professional setup" },
 		{ words: ["available year", "available all year", "always available"], weight: 10, label: "- Full availability" },
 		{ words: ["units", "properties", "our listings", "portfolio"], weight: 15, label: "- Multiple properties" },
-	  ];
+	];
+
+	const rentalReviewsKeywords = [
+		{ words: ["investment", "property manager", "management"], weight: 15, label: "- Commercial terms" },
+		{ words: ["every amenity", "professionally cleaned", "professional cleaning", "hotel quality"], weight: 5, label: "- Professional setup" },
+	];
+
+	const rentalTextKeywords = [
+		{ words: ["Show business details", "property manager"], weight: 15, label: "- Business-owned" },
+	];
 
 	let personalUseCount = 0;
-	for (const category of personalUseKeywords){
+	for (const category of personalUseDescriptionKeywords){
 		for (const keyword of category.words) {
-			if (text.includes(keyword)) {
+			if (description.includes(keyword)) {
 				score += category.weight;
-				console.log('this kw was found:' + keyword);
+				console.log('this kw was found:' + keyword + 'in the desc');
 				if (!factors.includes(category.label) && personalUseCount < 3){
 					factors.push(category.label);
 					personalUseCount++;
@@ -106,14 +149,28 @@ function fallbackAnalysis(listingData){
 				break;
 			}
 		}
-	  }
+	}
+
+	for (const category of personalUseReviewsKeywords){
+		for (const keyword of category.words) {
+			if (reviews.includes(keyword)) {
+				score += category.weight;
+				console.log('this kw was found:' + keyword + 'in the reviews');
+				if (!factors.includes(category.label) && personalUseCount < 3){
+					factors.push(category.label);
+					personalUseCount++;
+				}
+				break;
+			}
+		}
+	}
 
 	let rentalCount = 0;
-	for (const category of rentalKeywords){
+	for (const category of rentalDescriptionKeywords){
 		for (keyword of category.words) {
-			if (text.includes(keyword)) {
-				score += category.weight;
-				console.log('this kw was found:' + keyword);
+			if (description.includes(keyword)) {
+				score -= category.weight;
+				console.log('this kw was found:' + keyword + 'in description');
 				if (!factors.includes(category.label) && rentalCount < 3) {
 					factors.push(category.label);
 					rentalCount++;
@@ -123,7 +180,37 @@ function fallbackAnalysis(listingData){
 		}
 	}
 
-	if (personalUseCount === 0 && rentalKeywords === 0){
+	for (const category of rentalReviewsKeywords){
+		for (const keyword of category.words) {
+			if (reviews.includes(keyword)) {
+				score += category.weight;
+				console.log('this kw was found:' + keyword + 'in reviews');
+				if (!factors.includes(category.label) && personalUseCount < 3){
+					factors.push(category.label);
+					personalUseCount++;
+				}
+				break;
+			}
+		}
+	  }
+
+	for (const category of rentalTextKeywords){
+		for (keyword of category.words) {
+			if (text.includes(keyword)) {
+				score -= category.weight;
+				console.log('this kw was found:' + keyword + 'in Text');
+				if (!factors.includes(category.label) && rentalCount < 3) {
+					factors.push(category.label);
+					rentalCount++;
+				}
+				break;
+			}
+		}
+	}
+
+
+
+	if (personalUseCount === 0 && rentalCount === 0){
 			return `Not enough data`;
 	}
 
@@ -189,10 +276,11 @@ async function analyzeWitOpenAI(listingData) {
 					- High volume of reviews suggesting constant turnover
 
 					IGNORE the following as they are not reliable indicators:
-					- Number of years hosting (long-time hosts can still share their homes)
-					- Superhost status (applies to both types of hosts)
-					- Professional photos (both types use these now)
-					- Price (not a reliable indicator either way)
+					- Ignore Number of years hosting (long-time hosts can still share their homes)
+					- Ignore Superhost status (applies to both types of hosts)
+					- Ignore Professional photos (both types use these now)
+					- Ignore Price (not a reliable indicator either way)
+					- Ignore Host responsiveness (both type can be responsive)
 
 					Return the analysis in this exact format:
 					Score: [0-100]%
@@ -204,7 +292,7 @@ async function analyzeWitOpenAI(listingData) {
 					- [negative factor suggesting dedicated rental]
 					- [another negative factor]
 
-					Always use + for factors suggesting primary residence and - for factors suggesting dedicated rental.
+					Always use + for factors suggesting primary residence and - for factors suggesting dedicated rental. It does not have to be 2 of each, you can also have 5 negatives factors or 5 positives.
 					Each factor should be 2-4 words maximum.`
 				},
                 {
@@ -239,7 +327,6 @@ async function analyzeWitOpenAI(listingData) {
         }
 
 		const responseContent = data.choices[0].message.content;
-		console.log(responseContent);
 		if ((responseContent.toLowerCase().includes("sorry") ||
 		responseContent.toLowerCase().includes("I can't assist")) && !responseContent.includes("Score:")){
 			console.log('Response is a refusal - using fallback analysis');
@@ -279,8 +366,9 @@ async function handleTabs(tabs){
 
 		//Analyze with OpenAI
 		const analysis = await analyzeWitOpenAI(extractionResult.result);
-
+		console.log(analysis);
 		//Display the result
+
 		contentDisplay.classList.remove('loading');
 		contentDisplay.innerHTML = formatAnalysisResult(analysis);
 	} catch (error) {
