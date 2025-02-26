@@ -1,5 +1,11 @@
+
 //Format Open AI answer
 function formatAnalysisResult(analysis) {
+
+	if (analysis.toLowerCase().includes("not enough data")) {
+		return `There is not enough information on this listing in order to analyse it.`
+	}
+
 	// Split into lines
 	const lines = analysis.split('\n').map(line => line.trim());
 
@@ -63,6 +69,69 @@ async function extractListingData() {
 	}
 }
 
+function fallbackAnalysis(listingData){
+
+	const text = listingData.pageText.toLowerCase();
+	let score = 50;
+	const factors = [];
+
+	 // Personal Use indicators
+	const personalUseKeywords = [
+		{ words: ["my home", "my place", "our place", "my family", "our family"], weight: 15, label: "+ Personal references" },
+		{ words: ["when we're away", "when i'm away", "while i'm traveling"], weight: 15, label: "+ Limited availability" },
+		{ words: ["my favorite", "i love", "we love", "personal"], weight: 5, label: "+ Personal touches" },
+		{ words: ["primary", "live here", "live in", "my neighborhood"], weight: 10, label: "+ Home descriptions" },
+		{ words: ["part of", "sharing", "share my", "share our"], weight: 10, label: "+ Sharing language" },
+		{ words: ["toys", "my books", "my collection"], weight: 8, label: "+ Personal areas" },
+	  ];
+
+	// Dedicated rental indicators
+	const rentalKeywords = [
+		{ words: ["investment", "property manager", "management"], weight: 15, label: "- Commercial terms" },
+		{ words: ["every amenity", "professionally cleaned", "professional cleaning", "hotel quality"], weight: 5, label: "- Professional setup" },
+		{ words: ["available year", "available all year", "always available"], weight: 10, label: "- Full availability" },
+		{ words: ["units", "properties", "our listings", "portfolio"], weight: 15, label: "- Multiple properties" },
+	  ];
+
+	let personalUseCount = 0;
+	for (const category of personalUseKeywords){
+		for (const keyword of category.words) {
+			if (text.includes(keyword)) {
+				score += category.weight;
+				console.log('this kw was found:' + keyword);
+				if (!factors.includes(category.label) && personalUseCount < 3){
+					factors.push(category.label);
+					personalUseCount++;
+				}
+				break;
+			}
+		}
+	  }
+
+	let rentalCount = 0;
+	for (const category of rentalKeywords){
+		for (keyword of category.words) {
+			if (text.includes(keyword)) {
+				score += category.weight;
+				console.log('this kw was found:' + keyword);
+				if (!factors.includes(category.label) && rentalCount < 3) {
+					factors.push(category.label);
+					rentalCount++;
+				}
+				break;
+			}
+		}
+	}
+
+	if (personalUseCount === 0 && rentalKeywords === 0){
+			return `Not enough data`;
+	}
+
+	score = Math.max(0, Math.min(100, score));
+
+	return `Score: ${score}%\nFactors:\n${factors.join("\n")}`;
+}
+
 //Send data to OpenAI and get back analysis
 async function analyzeWitOpenAI(listingData) {
 	try {
@@ -87,19 +156,56 @@ async function analyzeWitOpenAI(listingData) {
             messages: [
                 {
                     role: "system",
-                    content: `Analyze this Airbnb listing and estimate wether it is likely to be a full-time rental or an owner-occupied home. .
-					Consider factors like: description style, amenities, host information, calendar availabilities, etc.
-                    Return the analysis in this exact format (score should always be on the first line of your answer):
-                    Score: [0-100]%
-                    Factors:
-                    + [positive factor that suggests lived-in]
-                    - [negative factor that suggests not lived-in]
-                    - [negative factor]
-                    + [positive factor]
-                    + [positive factor]
+                    content: `You are analyzing vacation rental listings to determine if they appear to be primary residences that are occasionally shared or dedicated full-time vacation properties. This analysis is for educational purposes about the sharing economy.
 
-                    Always use + for factors suggesting it's lived-in and - for factors suggesting it's not.
-                    Each factor should be 2-4 words maximum.`
+					Focus only on objective indicators in the listing such as:
+					- Presence of personal items vs. professional staging
+					- How the space is described by the host
+					- Availability patterns
+					- Nature of amenities and furnishings
+					- How the host describes their connection to the property
+
+					This is an objective analysis of publicly available listing information only, with no personal judgment about hosts or properties. The purpose is to understand different types of listings in the sharing economy.
+					Here are some signals to take into account - you can add other signals if you find them relevant:
+
+					POSITIVE SIGNALS (suggesting owner-occupied):
+					- Personal items visible in photos (books, family photos, unique decorations)
+					- Listing mentions "my home" or personal stories about the space
+					- Limited availability in calendar (only available on weekends or specific dates)
+					- Detailed local recommendations written from personal experience
+					- Evidence of personalization (not generic/professional staging)
+					- Unique/eclectic furnishings rather than standardized decor
+					- Workspace or areas that suggest regular personal use
+					- Mentions sharing part of the home or nearby presence
+
+					NEGATIVE SIGNALS (suggesting full-time rental):
+					- Professional/generic staging in all photos
+					- Multiple identical properties from same host
+					- Year-round availability with minimal blocked dates
+					- Generic/template descriptions of neighborhood
+					- Standardized amenities focusing on tourists only
+					- Property described as "investment" or "rental unit"
+					- Professional management company mentioned
+					- High volume of reviews suggesting constant turnover
+
+					IGNORE the following as they are not reliable indicators:
+					- Number of years hosting (long-time hosts can still share their homes)
+					- Superhost status (applies to both types of hosts)
+					- Professional photos (both types use these now)
+					- Price (not a reliable indicator either way)
+
+					Return the analysis in this exact format:
+					Score: [0-100]%
+					(This represents likelihood the property is a primary residence; higher = more likely)
+
+					Factors:
+					+ [positive factor suggesting primary residence, 2-4 words]
+					+ [another positive factor]
+					- [negative factor suggesting dedicated rental]
+					- [another negative factor]
+
+					Always use + for factors suggesting primary residence and - for factors suggesting dedicated rental.
+					Each factor should be 2-4 words maximum.`
 				},
                 {
                     role: "user",
@@ -132,7 +238,15 @@ async function analyzeWitOpenAI(listingData) {
             throw new Error('Invalid response from OpenAI API');
         }
 
-        return data.choices[0].message.content;
+		const responseContent = data.choices[0].message.content;
+		console.log(responseContent);
+		if ((responseContent.toLowerCase().includes("sorry") ||
+		responseContent.toLowerCase().includes("I can't assist")) && !responseContent.includes("Score:")){
+			console.log('Response is a refusal - using fallback analysis');
+      		return fallbackAnalysis(listingData);
+		}
+
+        return responseContent;
     } catch (error) {
         console.error('❌ Error in OpenAI analysis:', error);
         throw error;
@@ -167,7 +281,6 @@ async function handleTabs(tabs){
 		const analysis = await analyzeWitOpenAI(extractionResult.result);
 
 		//Display the result
-		console.log(analysis);
 		contentDisplay.classList.remove('loading');
 		contentDisplay.innerHTML = formatAnalysisResult(analysis);
 	} catch (error) {
