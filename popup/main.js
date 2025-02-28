@@ -24,14 +24,14 @@ async function handleTabs(tabs){
 		if (extractionResult.error) {
 			throw new Error(extractionResult.error);
 		}
-		 // Update loading message
-		 contentDisplay.innerHTML = '<span class="loading-text">Processing with AI</span>';
+		// Update loading message
+		contentDisplay.innerHTML = '<span class="loading-text">Processing with AI</span>';
 
 		//Analyze with OpenAI
 		const analysis = await analyzeWitOpenAI(extractionResult.result);
-		console.log(analysis);
-		//Display the result
+		console.log(analysis); //debug log
 
+		//Display the result
 		contentDisplay.classList.remove('loading');
 		contentDisplay.innerHTML = formatAnalysisResult(analysis);
 	} catch (error) {
