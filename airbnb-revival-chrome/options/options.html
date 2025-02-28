@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Airbnb Revival Options</title>
+  <script src="../browser-polyfill.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .header img {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #222;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #FF5A5F;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #FF3B40;
+    }
+    .message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #E7F5E8;
+      color: #2E7D32;
+    }
+    .error {
+      background-color: #FFE8E8;
+      color: #D32F2F;
+    }
+    .note {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #F5F5F5;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="/icons/airbnb-icon.png" alt="Airbnb Revival" />
+    <h1>Airbnb Revival Options</h1>
+  </div>
+
+  <div class="form-group">
+    <label for="apiKey">OpenAI API Key:</label>
+    <input type="text" id="apiKey" placeholder="sk-..." />
+  </div>
+
+  <button id="saveButton">Save</button>
+
+  <div id="message" class="message" style="display: none;"></div>
+
+  <div class="note">
+    <p><strong>Note:</strong> You need your own OpenAI API key to use this extension. If you don't have one, you can get it from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI's website</a>.</p>
+    <p>Your API key is stored locally on your device and is never sent to our servers.</p>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

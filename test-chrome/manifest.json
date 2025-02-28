@@ -1,0 +1,21 @@
+{
+	"manifest_version": 2,
+	"name": "Minimal Test Extension",
+	"version": "1.0",
+	"description": "A minimal test extension",
+	"icons": {
+	  "48": "airbnb-icon-bw.png"
+	},
+
+	"background": {
+  	"page": "background.html"
+	},
+
+	"permissions": [
+	  "storage"
+	],
+	"action": {
+	  "default_icon": "airbnb-icon-bw.png",
+	  "default_title": "Minimal Test Extension"
+	}
+  }

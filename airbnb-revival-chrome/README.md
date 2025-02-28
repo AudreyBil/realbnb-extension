@@ -42,8 +42,11 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
 2. After installing the extension, click on its icon in your browser toolbar
 3. If no API key is set, you'll see a prompt to set up your key
-4. Alternatively, right-click on the extension icon and select "Options"
-5. Enter your OpenAI API key and click "Save"
+4. Alternatively, on Mozilla:
+	- right-click on the extension icon and select "Manage Extension"
+	- In the about:addons tab, click on the 3 dots on the right of the extension name then select Preferences
+	- Enter your OpenAI API key and click "Save"
+5. Alternatively, on Chrome:
 
 ## Usage
 

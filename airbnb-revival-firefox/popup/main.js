@@ -26,11 +26,37 @@ async function handleTabs(tabs){
 
 		contentDisplay.classList.add('loading');
 		contentDisplay.innerHTML = '<span class="loading-text">Analyzing listing</span>';
-		//Extract the listing data
-		const [extractionResult] = await browser.scripting.executeScript({
-			target: { tabId: tabs[0].id},
-			func: extractListingData
-		});
+		// Extract the listing data - fix for Chrome
+		 let extractionResult;
+		 try {
+		   // Try the browser.scripting approach first
+		   const results = await browser.scripting.executeScript({
+			 target: { tabId: tabs[0].id },
+			 func: extractListingData
+		   });
+		   extractionResult = results[0];
+		 } catch (scriptError) {
+		   console.error('Scripting API failed:', scriptError);
+		   // Fallback to chrome.tabs.executeScript for Chrome
+		   if (typeof chrome !== 'undefined' && chrome.tabs) {
+			 contentDisplay.innerHTML = '<span class="loading-text">Retrying extraction</span>';
+			 const results = await new Promise((resolve, reject) => {
+			   chrome.tabs.executeScript(
+				 tabs[0].id,
+				 { code: `(${extractListingData.toString()})()` },
+				 (results) => {
+				   if (chrome.runtime.lastError) {
+					 reject(chrome.runtime.lastError);
+				   } else {
+					 resolve(results);
+				   }
+				 }
+			   );
+			 });
+			 extractionResult = { result: results[0] };
+		   }
+		 }
+
 		//Check for errors
 		if (extractionResult.error) {
 			throw new Error(extractionResult.error);

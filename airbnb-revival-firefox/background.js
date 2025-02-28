@@ -9,13 +9,13 @@ async function updateActionButton(tabId, url) {
     await browser.action.enable(tabId);
     await browser.action.setIcon({
       tabId: tabId,
-      path: "icons/airbnb-icon.png"
+      path: "icons/airbnb-revival-icon.png"
     });
     } else {
       await browser.action.disable(tabId);
       await browser.action.setIcon({
         tabId: tabId,
-        path: "icons/airbnb-icon-bw.png"
+        path: "icons/airbnb-revival-icon-bw.png"
     });
     }
 }

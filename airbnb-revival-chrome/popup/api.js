@@ -3,7 +3,8 @@ export async function analyzeWitOpenAI(listingData) {
 	try {
 
 		// Get API key from storage
-		const { apiKey } = await browser.storage.local.get('apiKey'); //using object destructing syntax to retrieve the apiKey property
+		const result = await browser.storage.local.get('apiKey');
+		const apiKey = result.apiKey;
 
 		if (!apiKey) {
 			throw new Error('API key not found. Please set it in the extension options.');
@@ -91,13 +92,14 @@ export async function analyzeWitOpenAI(listingData) {
 			max_tokens: 300 // a token = roughly 3/4 characters so this keeps the analysis concise
 		};
 
-		const response = await fetch('https://api.openai.com/v1/chat/completions', {
+		// Try with the stored key
+		let response = await fetch('https://api.openai.com/v1/chat/completions', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer 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'
+				'Authorization': 'Bearer ' + apiKey
 			},
-			body: JSON.stringify(requestBody) //convert the js requestBody object into a JSON string to be transmitted over HTTP
+			body: JSON.stringify(requestBody)
 		});
 
 		if (!response.ok) {

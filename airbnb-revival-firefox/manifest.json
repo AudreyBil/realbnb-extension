@@ -2,9 +2,9 @@
 	"manifest_version": 3,
 	"name": "Airbnb-Revival",
 	"version": "1.0",
-	"description": "Adds a red border to all webpages matching www.airbnb.*/rooms/*",
+	"description": "Analyze Airbnb listings to determine if they are likely primary residences or dedicated rental properties",
 	"icons": {
-	  "48": "icons/airbnb-icon.png"
+	  "48": "icons/airbnb-revival-icon.png"
 	},
 
 	"permissions": [
@@ -20,7 +20,7 @@
 	  ],
 
 	"action": {
-	  "default_icon": "icons/airbnb-icon.png",
+	  "default_icon": "icons/airbnb-revival-icon.png",
 	  "default_title": "Airbnb revival",
 	  "default_popup": "popup/airbnbrevival.html"
 	},
