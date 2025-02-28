@@ -1,9 +1,10 @@
 //Format Open AI Analysis
-function formatAnalysisResult(analysis) {
+export function formatAnalysisResult(analysis) {
 
 	//If analysis was not successful, return an error message
-	if (analysis.toLowerCase().includes("not enough data")) {
-		return `There is not enough information on this listing in order to analyse it.`
+	if ((analysis.toLowerCase().includes("sorry") ||
+	analysis.toLowerCase().includes("I can't assist")) && !analysis.includes("Score:")) {
+		return '<div class="error">Open AI could not run the analysis. Try again.</div>';
 	}
 
 	//Split into lines: split the analysis for each newline and store them in an array of line
@@ -11,10 +12,10 @@ function formatAnalysisResult(analysis) {
 	const lines = analysis.split('\n').map(line => line.trim());
 
 	// Find the score line specifically with the find method
-	const scoreLine = lines.find(line => line.toLowerCase().startsWith('score:'));
+	const scoreLine = lines.find(line => line.toLowerCase().includes('score:'));
 	if (!scoreLine) {
 		console.error('No score line found in:', analysis);
-		return '<div class="error">Invalid analysis format</div>';
+		return '<div class="error">Open AI could not run the analysis. Try again.</div>';
 	}
 
 	// Extract score from the score line
@@ -22,15 +23,14 @@ function formatAnalysisResult(analysis) {
 	const score = scoreMatch ? scoreMatch[1] : "N/A";
 
 	// Start collecting factors from after the score line
-	const scoreLineIndex = lines.findIndex(line => line.toLowerCase().startsWith('score:'));
+	const scoreLineIndex = lines.indexOf(scoreLine);
 	const factors = lines
-		.slice(scoreLineIndex + 1)  // Start from after score line
-		.filter(line => line.trim().startsWith('+') || line.trim().startsWith('-'))  // Only take factors with + or -
-		.map(line => ({
-			text: line.substring(1).trim(),  // Remove the + or - and trim
+		.slice(scoreLineIndex + 1)  // Create a new array starting from the line following the score line
+		.filter(line => line.trim().startsWith('+') || line.trim().startsWith('-'))  // Create a new array with only lines starting with + or - (trim the whitespace first)
+		.map(line => ({ //Create an array by applying a transformation function to each factor and turning each of them into an object with two properties
+			text: line.substring(1).trim(),  // Remove the + or - by extracting all characters from index 1, and trim whitespaces
 			isPositive: line.startsWith('+')
 		}));
-
 	console.log('Parsed result:', { score, factors });  // Debug log
 
 	return `
@@ -46,4 +46,5 @@ function formatAnalysisResult(analysis) {
 			</div>
 		</div>
 	`;
+	//use join method to combine all the strings from the array into a single string so it creates a proper HTML string that can be inserted into the DOM
 }
