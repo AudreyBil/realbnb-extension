@@ -15,7 +15,7 @@ async function updateActionButton(tabId, url) {
       await browser.action.disable(tabId);
       await browser.action.setIcon({
         tabId: tabId,
-        path: "icons/airbnb-icon-disabled.png"
+        path: "icons/airbnb-icon-bw.png"
     });
     }
 }
@@ -54,10 +54,10 @@ browser.webNavigation?.onCommitted.addListener((details) => {
 	}
   });
 
-  // Initialize all tabs when the extension starts
-  initializeAllTabs().catch(console.error);
+// Initialize all tabs when the extension starts
+initializeAllTabs().catch(console.error);
 
-  // Handle extension installation or update
-  browser.runtime.onInstalled.addListener(() => {
+// Handle extension installation or update
+browser.runtime.onInstalled.addListener(() => {
 	initializeAllTabs().catch(console.error);
   });

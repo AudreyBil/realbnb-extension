@@ -12,7 +12,18 @@ async function handleTabs(tabs){
 		return;
 	}
 
-	try {
+	try {// Check if API key is set
+		const { apiKey } = await browser.storage.local.get('apiKey');
+		if (!apiKey) {
+			contentDisplay.innerHTML = `
+				<div class="error">
+					OpenAI API key is not set.
+					<a href="${browser.runtime.getURL('options/options.html')}" target="_blank">Click here to set it up</a>
+				</div>
+			`;
+			return;
+		}
+
 		contentDisplay.classList.add('loading');
 		contentDisplay.innerHTML = '<span class="loading-text">Analyzing listing</span>';
 		//Extract the listing data

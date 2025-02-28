@@ -1,8 +1,15 @@
 //Send data to OpenAI and get back analysis
 export async function analyzeWitOpenAI(listingData) {
 	try {
-		//Prepare the request content
 
+		// Get API key from storage
+		const { apiKey } = await browser.storage.local.get('apiKey'); //using object destructing syntax to retrieve the apiKey property
+
+		if (!apiKey) {
+			throw new Error('API key not found. Please set it in the extension options.');
+		}
+
+		//Prepare the request content
 		// Prepare content array with text first
 		const content = [{
 			type: "text",
