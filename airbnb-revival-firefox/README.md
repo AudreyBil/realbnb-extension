@@ -1,4 +1,4 @@
-# Airbnb Revival
+# RealBnB
 
 A browser extension that analyzes Airbnb listings to determine if they are likely primary residences or dedicated rental properties.
 
@@ -28,12 +28,7 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 5. Select any file from the extension directory (e.g., manifest.json)
 
 ### Chrome
-
-1. Download the code or clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" (toggle in the top-right corner)
-4. Click "Load unpacked"
-5. Select the extension directory
+=> Currently not working on Chrome
 
 ## Setup
 
@@ -46,7 +41,6 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 	- right-click on the extension icon and select "Manage Extension"
 	- In the about:addons tab, click on the 3 dots on the right of the extension name then select Preferences
 	- Enter your OpenAI API key and click "Save"
-5. Alternatively, on Chrome:
 
 ## Usage
 
