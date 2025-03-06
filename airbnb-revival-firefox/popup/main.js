@@ -47,14 +47,14 @@ async function handleTabs(tabs){
 
 				// Add refresh button event listener
 				document.getElementById('refreshButton').addEventListener('click', () => {
-					performAnalysis(tabs, contentDisplay, currentUrl, apiKey, true);
+					performAnalysis(tabs, contentDisplay, currentUrl);
 				});
 			}
 			return;
 		}
 
 		// If no valid cache, perform a new analysis
-		await performAnalysis(tabs, contentDisplay, currentUrl, apiKey);
+		await performAnalysis(tabs, contentDisplay, currentUrl);
 
 	} catch (error) {
 		contentDisplay.classList.remove('loading');
@@ -63,7 +63,7 @@ async function handleTabs(tabs){
 }
 
 // Separate function to perform the analysis and update cache
-async function performAnalysis(tabs, contentDisplay, currentUrl, apiKey, cache, forceRefresh = false) {
+async function performAnalysis(tabs, contentDisplay, currentUrl) {
 	contentDisplay.classList.add('loading');
 	contentDisplay.innerHTML = '<span class="loading-text">Analyzing listing</span>';
 

@@ -38,29 +38,3 @@ export async function getCache() {
 	// Save updated cache
 	await browser.storage.local.set({ cache: updatedCache });
   }
-
-  // Clear the entire cache
-  export async function clearCache() {
-	await browser.storage.local.set({ cache: {} });
-  }
-
-  // Clear cache for a specific URL
-  export async function clearCacheForUrl(url) {
-	const cache = await getCache();
-	if (cache[url]) {
-	  delete cache[url];
-	  await browser.storage.local.set({ cache });
-	}
-  }
-
-  // Get cache statistics
-  export async function getCacheStats() {
-	const cache = await getCache();
-	const urls = Object.keys(cache);
-
-	return {
-	  totalEntries: urls.length,
-	  size: JSON.stringify(cache).length,
-	  urls: urls
-	};
-  }
