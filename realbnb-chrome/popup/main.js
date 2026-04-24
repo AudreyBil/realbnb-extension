@@ -1,7 +1,41 @@
 // Import the required modules
-import { formatAnalysisResult } from "./formatanalysis.js";
-import { extractListingData } from "./extraction.js";
-import { analyzeWitOpenAI } from "./api.js";
+import {analyzeWitOpenAI} from './api.js';
+import {cacheResult, getCachedResult} from './cache.js';
+import {extractListingData} from './extraction.js';
+import {formatAnalysisResult} from './formatanalysis.js';
+
+async function performAnalysis(tabs, contentDisplay, currentUrl) {
+  // Update UI to show loading
+  contentDisplay.classList.add('loading');
+  contentDisplay.innerHTML =
+      '<span class="loading-text">Analyzing listing</span>';
+
+  // Extract the listing data
+  let extractionResult;
+
+  // Try to use the scripting API appropriate for the browser
+  try {
+    const results = await chrome.scripting.executeScript(
+        {target: {tabId: tabs[0].id}, function: extractListingData});
+    extractionResult = {result: results[0].result};
+  } catch (error) {
+    console.error('Error executing script:', error);
+    throw new Error('Failed to extract listing data: ' + error.message);
+  }
+
+  // Update loading message
+  contentDisplay.innerHTML =
+      '<span class="loading-text">Processing with AI</span>';
+
+  // Analyze with OpenAI
+  const analysis = await analyzeWitOpenAI(extractionResult.result);
+
+  // Display the result
+  contentDisplay.classList.remove('loading');
+  const formattedResult = formatAnalysisResult(analysis);
+  contentDisplay.innerHTML = formattedResult;
+  await cacheResult(currentUrl, formattedResult);
+}
 
 // Function to handle tabs and analyze the listing
 async function handleTabs(tabs) {
@@ -14,72 +48,53 @@ async function handleTabs(tabs) {
   }
 
   try {
+    // Get current URL to use as cache key
+    const currentUrl = tabs[0].url;
+
     // Check if API key is set
-    let apiKey;
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      // Try direct Chrome API first
-      await new Promise(resolve => {
-        chrome.storage.local.get('apiKey', (result) => {
-          apiKey = result.apiKey;
-          resolve();
-        });
-      });
-    } else {
-      // Fall back to browser polyfill
-      const result = await browser.storage.local.get('apiKey');
-      apiKey = result.apiKey;
-    }
+    const result = await chrome.storage.local.get('apiKey');
+    const apiKey = result.apiKey;
 
     if (!apiKey) {
-      const optionsUrl = typeof chrome !== 'undefined' ?
-        chrome.runtime.getURL('options/options.html') :
-        browser.runtime.getURL('options/options.html');
-
       contentDisplay.innerHTML = `
-        <div class="error">
-          OpenAI API key is not set.
-          <a href="${optionsUrl}" target="_blank">Click here to set it up</a>
-        </div>
-      `;
+          <div class="error">
+            OpenAI API key is not set.
+            <a href="${
+          chrome.runtime.getURL(
+              'options/options.html')}" target="_blank">Click here to set it up</a>
+          </div>
+        `;
       return;
     }
 
-    // Update UI to show loading
-    contentDisplay.classList.add('loading');
-    contentDisplay.innerHTML = '<span class="loading-text">Analyzing listing</span>';
+    // Check for cached result first
+    const cachedResult = await getCachedResult(currentUrl);
 
-    // Extract the listing data
-    let extractionResult;
+    // Use cached result if available and not an error
+    if (cachedResult && !cachedResult.includes('<div class="error">')) {
+      contentDisplay.classList.remove('loading');
+      contentDisplay.innerHTML = cachedResult;
 
-    // Try to use the scripting API appropriate for the browser
-    try {
-      if (typeof chrome !== 'undefined' && chrome.scripting) {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          function: extractListingData
-        });
-        extractionResult = { result: results[0].result };
-      } else {
-        const results = await browser.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          func: extractListingData
-        });
-        extractionResult = results[0];
+      // Add a small indicator that this is a cached result
+      const resultDiv = contentDisplay.querySelector('.result');
+      if (resultDiv) {
+        const cachedIndicator = document.createElement('div');
+        cachedIndicator.className = 'cached-indicator';
+        cachedIndicator.innerHTML =
+            '<button id="refreshButton" class="refresh-button">Refresh Analysis</button>';
+        resultDiv.appendChild(cachedIndicator);
+
+        // Add refresh button event listener
+        document.getElementById('refreshButton')
+            .addEventListener('click', () => {
+              performAnalysis(tabs, contentDisplay, currentUrl);
+            });
       }
-    } catch (error) {
-      console.error('Error executing script:', error);
-      throw new Error('Failed to extract listing data: ' + error.message);
+      return;
     }
 
-    // Update loading message
-    contentDisplay.innerHTML = '<span class="loading-text">Processing with AI</span>';
-
-    // Analyze with OpenAI
-    const analysis = await analyzeWitOpenAI(extractionResult.result);
-
-    // Display the result
-    contentDisplay.classList.remove('loading');
-    contentDisplay.innerHTML = formatAnalysisResult(analysis);
+    // if no valid cache, perform a new analysis
+    await performAnalysis(tabs, contentDisplay, currentUrl);
 
   } catch (error) {
     contentDisplay.classList.remove('loading');
@@ -87,23 +102,4 @@ async function handleTabs(tabs) {
   }
 }
 
-// Add initialization logging
-console.log('Popup script loaded');
-
-// Initialize when popup opens
-if (typeof chrome !== 'undefined' && chrome.tabs) {
-  chrome.tabs.query({ active: true, currentWindow: true }, handleTabs);
-} else {
-  browser.tabs.query({ active: true, currentWindow: true }, handleTabs);
-}
-
-// Keep-alive ping to background service worker
-if (typeof chrome !== 'undefined' && chrome.runtime) {
-  // Send initial ping
-  chrome.runtime.sendMessage({ action: "keepAlive" });
-
-  // Setup periodic pings
-  setInterval(() => {
-    chrome.runtime.sendMessage({ action: "keepAlive" });
-  }, 20000);
-}
+chrome.tabs.query({active: true, currentWindow: true}, handleTabs);
