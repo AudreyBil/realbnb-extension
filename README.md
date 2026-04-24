@@ -55,7 +55,7 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 
 This extension uses the OpenAI API to analyze listing content. You will need your own OpenAI API key to use this extension. Your API key is stored locally on your device and is never sent to our servers.
 
-When using the OpenAI API, standard OpenAI usage rates apply. Each analysis will count as one API call to the GPT-4o model, which may incur charges depending on your OpenAI plan. For more information on pricing, visit [OpenAI's pricing page] (https://openai.com/api/pricing/).
+When using the OpenAI API, standard OpenAI usage rates apply. Each analysis will count as one API call to the GPT-4o model, which may incur charges depending on your OpenAI plan. For more information on pricing, visit [OpenAI's pricing page](https://openai.com/api/pricing/).
 
 ## Privacy and Security
 
