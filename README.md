@@ -28,7 +28,11 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 5. Select any file from the extension directory (e.g., manifest.json)
 
 ### Chrome
-=> Currently not working on Chrome
+1. Download the code or clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable Developer mode using the toggle on the top right
+4. Click "Load unpacked"
+5. Select the realbnb-chrome folder
 
 ## Setup
 
@@ -37,7 +41,7 @@ Rediscover the original Airbnb experience and save time finding spaces that offe
 1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
 2. After installing the extension, click on its icon in your browser toolbar
 3. If no API key is set, you'll see a prompt to set up your key
-4. Alternatively, on Mozilla:
+4. Alternatively, on Firefox:
 	- right-click on the extension icon and select "Manage Extension"
 	- In the about:addons tab, click on the 3 dots on the right of the extension name then select Preferences
 	- Enter your OpenAI API key and click "Save"
